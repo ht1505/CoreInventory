@@ -1,0 +1,242 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  MANAGER
+  STAFF
+}
+
+enum OperationStatus {
+  DRAFT
+  WAITING
+  READY
+  DONE
+  CANCELED
+}
+
+model User {
+  id           Int       @id @default(autoincrement())
+  name         String
+  email        String    @unique
+  passwordHash String
+  role         Role      @default(STAFF)
+  createdAt    DateTime  @default(now())
+  receipts     Receipt[] @relation("CreatedReceipts")
+  deliveries   Delivery[] @relation("CreatedDeliveries")
+  transfers    Transfer[] @relation("CreatedTransfers")
+  adjustments  Adjustment[] @relation("CreatedAdjustments")
+  stockLedgers StockLedger[] @relation("CreatedStockLedgers")
+
+  @@map("users")
+}
+
+model Warehouse {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  address   String
+  locations Location[]
+
+  @@map("warehouses")
+}
+
+model Location {
+  id                Int          @id @default(autoincrement())
+  name              String       @unique
+  warehouseId       Int
+  warehouse         Warehouse    @relation(fields: [warehouseId], references: [id])
+  stocks            Stock[]
+  receipts          Receipt[]
+  deliveries        Delivery[]
+  transfersFrom     Transfer[]   @relation("FromLocation")
+  transfersTo       Transfer[]   @relation("ToLocation")
+  adjustments       Adjustment[]
+  stockLedgers      StockLedger[]
+
+  @@map("locations")
+}
+
+model Category {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  products Product[]
+
+  @@map("categories")
+}
+
+model Supplier {
+  id        Int       @id @default(autoincrement())
+  name      String    @unique
+  contact   String
+  receipts  Receipt[]
+
+  @@map("suppliers")
+}
+
+model Product {
+  id              Int              @id @default(autoincrement())
+  name            String
+  sku             String           @unique
+  categoryId      Int
+  category        Category         @relation(fields: [categoryId], references: [id])
+  unit            String
+  reorderLevel    Int
+  stocks          Stock[]
+  receiptLines    ReceiptLine[]
+  deliveryLines   DeliveryLine[]
+  transferLines   TransferLine[]
+  adjustmentLines AdjustmentLine[]
+  stockLedgers    StockLedger[]
+
+  @@map("products")
+}
+
+model Stock {
+  id         Int      @id @default(autoincrement())
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  locationId Int
+  location   Location @relation(fields: [locationId], references: [id])
+  quantity   Int
+
+  @@unique([productId, locationId])
+  @@map("stocks")
+}
+
+model Receipt {
+  id          Int             @id @default(autoincrement())
+  reference   String          @unique
+  supplierId  Int
+  supplier    Supplier        @relation(fields: [supplierId], references: [id])
+  locationId  Int
+  location    Location        @relation(fields: [locationId], references: [id])
+  status      OperationStatus @default(DRAFT)
+  createdById Int
+  createdBy   User            @relation("CreatedReceipts", fields: [createdById], references: [id])
+  createdAt   DateTime        @default(now())
+  validatedAt DateTime?
+  lines       ReceiptLine[]
+
+  @@map("receipts")
+}
+
+model ReceiptLine {
+  id          Int     @id @default(autoincrement())
+  receiptId   Int
+  receipt     Receipt @relation(fields: [receiptId], references: [id])
+  productId   Int
+  product     Product @relation(fields: [productId], references: [id])
+  expectedQty Int
+  receivedQty Int?
+
+  @@map("receipt_lines")
+}
+
+model Delivery {
+  id           Int             @id @default(autoincrement())
+  reference    String          @unique
+  locationId   Int
+  location     Location        @relation(fields: [locationId], references: [id])
+  customerName String
+  status       OperationStatus @default(DRAFT)
+  createdById  Int
+  createdBy    User            @relation("CreatedDeliveries", fields: [createdById], references: [id])
+  createdAt    DateTime        @default(now())
+  validatedAt  DateTime?
+  lines        DeliveryLine[]
+
+  @@map("deliveries")
+}
+
+model DeliveryLine {
+  id           Int      @id @default(autoincrement())
+  deliveryId   Int
+  delivery     Delivery @relation(fields: [deliveryId], references: [id])
+  productId    Int
+  product      Product  @relation(fields: [productId], references: [id])
+  orderedQty   Int
+  deliveredQty Int?
+
+  @@map("delivery_lines")
+}
+
+model Transfer {
+  id             Int             @id @default(autoincrement())
+  reference      String          @unique
+  fromLocationId Int
+  fromLocation   Location        @relation("FromLocation", fields: [fromLocationId], references: [id])
+  toLocationId   Int
+  toLocation     Location        @relation("ToLocation", fields: [toLocationId], references: [id])
+  status         OperationStatus @default(DRAFT)
+  createdById    Int
+  createdBy      User            @relation("CreatedTransfers", fields: [createdById], references: [id])
+  createdAt      DateTime        @default(now())
+  validatedAt    DateTime?
+  lines          TransferLine[]
+
+  @@map("transfers")
+}
+
+model TransferLine {
+  id         Int      @id @default(autoincrement())
+  transferId Int
+  transfer   Transfer @relation(fields: [transferId], references: [id])
+  productId  Int
+  product    Product  @relation(fields: [productId], references: [id])
+  quantity   Int
+
+  @@map("transfer_lines")
+}
+
+model Adjustment {
+  id          Int              @id @default(autoincrement())
+  reference   String           @unique
+  locationId  Int
+  location    Location         @relation(fields: [locationId], references: [id])
+  reason      String
+  status      OperationStatus  @default(DRAFT)
+  createdById Int
+  createdBy   User             @relation("CreatedAdjustments", fields: [createdById], references: [id])
+  createdAt   DateTime         @default(now())
+  validatedAt DateTime?
+  lines       AdjustmentLine[]
+
+  @@map("adjustments")
+}
+
+model AdjustmentLine {
+  id           Int        @id @default(autoincrement())
+  adjustmentId Int
+  adjustment   Adjustment @relation(fields: [adjustmentId], references: [id])
+  productId    Int
+  product      Product    @relation(fields: [productId], references: [id])
+  recordedQty  Int
+  actualQty    Int
+
+  @@map("adjustment_lines")
+}
+
+model StockLedger {
+  id             Int      @id @default(autoincrement())
+  productId      Int
+  product        Product  @relation(fields: [productId], references: [id])
+  locationId     Int
+  location       Location @relation(fields: [locationId], references: [id])
+  movementType   String
+  reference      String
+  quantityChange Int
+  quantityAfter  Int
+  createdById    Int
+  createdBy      User     @relation("CreatedStockLedgers", fields: [createdById], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@map("stock_ledgers")
+}
