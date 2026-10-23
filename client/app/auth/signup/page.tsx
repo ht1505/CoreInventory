@@ -43,9 +43,13 @@ export default function SignupPage() {
     e.preventDefault();
     setLoading(true);
     try {
-      await axios.post('/auth/verify-otp', { email: formData.email, otp: otp.join('') });
-      toast.success('Account created! Please login.');
-      router.push('/auth/login');
+      const res = await axios.post('/auth/verify-otp', { email: formData.email, otp: otp.join('') });
+      if (res.data?.token) {
+        localStorage.setItem('token', res.data.token);
+        localStorage.setItem('user', JSON.stringify(res.data.user));
+      }
+      toast.success('Account verified! Welcome to CoreInventory.');
+      router.push('/dashboard');
     } catch (err: any) {
       toast.error(err.response?.data?.error || 'Invalid OTP');
     } finally {

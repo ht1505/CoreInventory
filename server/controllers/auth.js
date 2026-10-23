@@ -1,32 +1,35 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
-const { PrismaClient } = require('@prisma/client');
+const prisma = require('../prismaClient');
 const { sendOTPEmail } = require('../utils/mailer');
-
-const prisma = new PrismaClient();
 const otpStore = {};
 
 // ─── SIGNUP: Step 1 — Send OTP ───────────────────────────────────────────────
-const sendOtp = async (req, res) => {
-  const { name, email, password, role } = req.body;
+const sendOtp = async (req, res, next) => {
+  try {
+    const { name, email, password, role } = req.body;
 
-  if (!name || !email || !password)
-    return res.status(400).json({ error: 'All fields required' });
+    if (!name || !email || !password)
+      return res.status(400).json({ error: 'All fields required' });
 
-  const validRoles = ['MANAGER', 'STAFF'];
-  const userRole = validRoles.includes(role) ? role : 'STAFF';
+    const validRoles = ['MANAGER', 'STAFF'];
+    const userRole = validRoles.includes(role) ? role : 'STAFF';
 
-  const existing = await prisma.user.findUnique({ where: { email } });
-  if (existing)
-    return res.status(400).json({ error: 'Email already registered' });
+    const existing = await prisma.user.findUnique({ where: { email } });
+    if (existing)
+      return res.status(400).json({ error: 'Email already registered' });
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000;
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000;
 
-  otpStore[email] = { otp, expiresAt, name, email, password, role: userRole };
+    otpStore[email] = { otp, expiresAt, name, email, password, role: userRole };
 
-  await sendOTPEmail(email, otp);
-  res.json({ message: 'OTP sent to your email' });
+    await sendOTPEmail(email, otp);
+    res.json({ message: 'OTP sent to your email' });
+  } catch (error) {
+    console.error('sendOtp error:', error);
+    res.status(500).json({ error: error.message || 'Failed to send OTP' });
+  }
 };
 
 // ─── SIGNUP: Step 2 — Verify OTP and create account ─────────────────────────
@@ -58,8 +61,15 @@ const verifyOtp = async (req, res) => {
 
   delete otpStore[email];
 
+  const token = jwt.sign(
+    { userId: user.id, role: user.role },
+    process.env.JWT_SECRET,
+    { expiresIn: '7d' }
+  );
+
   res.json({
     message: 'Account created successfully',
+    token,
     user: { id: user.id, name: user.name, email: user.email, role: user.role },
   });
 };
@@ -87,24 +97,29 @@ const login = async (req, res) => {
 };
 
 // ─── FORGOT PASSWORD: Step 1 — Send OTP ─────────────────────────────────────
-const forgotPasswordSendOtp = async (req, res) => {
-  const { email } = req.body;
+const forgotPasswordSendOtp = async (req, res, next) => {
+  try {
+    const { email } = req.body;
 
-  if (!email)
-    return res.status(400).json({ error: 'Email is required' });
+    if (!email)
+      return res.status(400).json({ error: 'Email is required' });
 
-  const user = await prisma.user.findUnique({ where: { email } });
-  if (!user)
-    return res.status(404).json({ error: 'No account found with this email' });
+    const user = await prisma.user.findUnique({ where: { email } });
+    if (!user)
+      return res.status(404).json({ error: 'No account found with this email' });
 
-  const otp = Math.floor(100000 + Math.random() * 900000).toString();
-  const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = Date.now() + 10 * 60 * 1000; // 10 minutes
 
-  // Store under a reset-specific key to avoid clash with signup OTPs
-  otpStore[`reset_${email}`] = { otp, expiresAt };
+    // Store under a reset-specific key to avoid clash with signup OTPs
+    otpStore[`reset_${email}`] = { otp, expiresAt };
 
-  await sendOTPEmail(email, otp);
-  res.json({ message: 'Password reset OTP sent to your email' });
+    await sendOTPEmail(email, otp);
+    res.json({ message: 'Password reset OTP sent to your email' });
+  } catch (error) {
+    console.error('forgotPasswordSendOtp error:', error);
+    res.status(500).json({ error: error.message || 'Failed to send reset OTP' });
+  }
 };
 
 // ─── FORGOT PASSWORD: Step 2 — Verify OTP and reset password ────────────────

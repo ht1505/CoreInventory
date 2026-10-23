@@ -22,8 +22,11 @@ export default function WarehousesPage() {
     try {
       const res = await axios.get('/warehouses');
       setWarehouses(res.data);
-    } catch { toast.error('Failed to load warehouses'); }
-    finally { setLoading(false); }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to load warehouses');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchWarehouses(); }, []);
@@ -51,7 +54,9 @@ export default function WarehousesPage() {
       await axios.delete(`/warehouses/${id}`);
       toast.success('Warehouse deleted');
       fetchWarehouses();
-    } catch { toast.error('Failed to delete'); }
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || 'Failed to delete warehouse');
+    }
   };
 
   return (
@@ -122,10 +127,10 @@ export default function WarehousesPage() {
 
               <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '12px' }}>
                 <div style={{ fontSize: '11px', color: '#9ca3af', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
-                  Locations ({w.locations.length})
+                  Locations ({(w.locations || []).length})
                 </div>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
-                  {w.locations.length === 0 ? (
+                  {(!w.locations || w.locations.length === 0) ? (
                     <span style={{ fontSize: '12px', color: '#d1d5db' }}>No locations</span>
                   ) : w.locations.map(loc => (
                     <span key={loc.id} style={{ background: '#f3f4f6', color: '#374151', fontSize: '11px', padding: '3px 8px', borderRadius: '20px' }}>

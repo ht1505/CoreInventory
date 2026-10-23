@@ -4,7 +4,7 @@ import axios from '@/lib/axios';
 import { useAuth } from '@/hooks/useAuth';
 import { useRouter } from 'next/navigation';
 import toast from 'react-hot-toast';
-import { Database, RefreshCw } from 'lucide-react';
+import { Database, RefreshCw, Trash2, ShieldAlert } from 'lucide-react';
 
 const TABLES = [
   { key: 'products',    label: 'Products',    endpoint: '/products',    cols: ['id','name','sku','category.name','unit','reorderLevel'] },
@@ -54,6 +54,26 @@ export default function DatabasePage() {
       setData(Array.isArray(res.data) ? res.data : res.data.data || []);
     } catch { toast.error(`Failed to load ${table.label}`); }
     finally { setLoading(false); }
+  };
+
+  const handleDeleteUser = async (userId: number, userName: string) => {
+    if (user?.id === userId) {
+      toast.error('You cannot delete your own account.');
+      return;
+    }
+    if (!window.confirm(`Are you sure you want to permanently remove user "${userName}" from the system and database?\n\nTheir past transaction audit records will be safely reassigned to your manager account.`)) {
+      return;
+    }
+    try {
+      setLoading(true);
+      const res = await axios.delete(`/users/${userId}`);
+      toast.success(res.data?.message || 'User deleted successfully');
+      await fetchTable(activeTable);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.error || 'Failed to remove user');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => { fetchTable(activeTable); }, [activeTable]);
@@ -112,13 +132,18 @@ export default function DatabasePage() {
                     {colLabel(col)}
                   </th>
                 ))}
+                {activeTable.key === 'users' && (
+                  <th style={{ padding: '10px 14px', textAlign: 'right', fontSize: '11px', fontWeight: 600, color: '#ef4444', textTransform: 'uppercase', letterSpacing: '0.5px', whiteSpace: 'nowrap' }}>
+                    Admin Action
+                  </th>
+                )}
               </tr>
             </thead>
             <tbody>
               {loading ? (
-                <tr><td colSpan={activeTable.cols.length} style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>Loading...</td></tr>
+                <tr><td colSpan={activeTable.cols.length + (activeTable.key === 'users' ? 1 : 0)} style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>Loading...</td></tr>
               ) : data.length === 0 ? (
-                <tr><td colSpan={activeTable.cols.length} style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>No records found</td></tr>
+                <tr><td colSpan={activeTable.cols.length + (activeTable.key === 'users' ? 1 : 0)} style={{ padding: '40px', textAlign: 'center', color: '#9ca3af' }}>No records found</td></tr>
               ) : data.map((row, i) => (
                 <tr key={i} className="db-row" style={{ borderBottom: i < data.length - 1 ? '1px solid #f3f4f6' : 'none' }}>
                   {activeTable.cols.map(col => (
@@ -136,6 +161,31 @@ export default function DatabasePage() {
                       ) : getNestedValue(row, col)}
                     </td>
                   ))}
+                  {activeTable.key === 'users' && (
+                    <td style={{ padding: '10px 14px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                      {user?.id === row.id ? (
+                        <span style={{ fontSize: '11px', color: '#9ca3af', background: '#f3f4f6', padding: '3px 8px', borderRadius: '4px', fontWeight: 500 }}>
+                          You (Active)
+                        </span>
+                      ) : (
+                        <button
+                          onClick={() => handleDeleteUser(row.id, row.name)}
+                          style={{
+                            display: 'inline-flex', alignItems: 'center', gap: '5px',
+                            background: '#fef2f2', border: '1px solid #fecaca',
+                            color: '#dc2626', borderRadius: '6px', padding: '4px 9px',
+                            fontSize: '11px', fontWeight: 600, cursor: 'pointer',
+                            transition: 'all 0.15s',
+                          }}
+                          onMouseEnter={e => { (e.currentTarget as HTMLButtonElement).style.background = '#dc2626'; (e.currentTarget as HTMLButtonElement).style.color = '#fff'; }}
+                          onMouseLeave={e => { (e.currentTarget as HTMLButtonElement).style.background = '#fef2f2'; (e.currentTarget as HTMLButtonElement).style.color = '#dc2626'; }}
+                          title="Permanently remove user from system"
+                        >
+                          <Trash2 size={12} /> Remove
+                        </button>
+                      )}
+                    </td>
+                  )}
                 </tr>
               ))}
             </tbody>

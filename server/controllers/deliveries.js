@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../prismaClient');
 
 const getAllDeliveries = async (req, res, next) => {
   try {
@@ -73,15 +72,26 @@ const validateDelivery = async (req, res, next) => {
   try {
     const delivery = await prisma.delivery.findUnique({
       where: { id: deliveryId },
-      include: { lines: true },
+      include: {
+        location: true,
+        lines: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
 
     if (!delivery) {
-      return res.status(404).json({ message: 'Delivery not found' });
+      return res.status(404).json({ error: 'Delivery not found' });
     }
 
     if (delivery.status === 'DONE') {
-      return res.status(400).json({ message: 'Delivery has already been validated.' });
+      return res.status(400).json({ error: 'Delivery has already been validated.' });
+    }
+
+    if (delivery.status === 'CANCELED') {
+      return res.status(400).json({ error: 'Delivery is canceled and cannot be validated.' });
     }
 
     const incomingLines = req.body && Array.isArray(req.body.lines) && req.body.lines.length > 0
@@ -105,9 +115,12 @@ const validateDelivery = async (req, res, next) => {
         },
       });
 
+      const currentQty = stock ? stock.quantity : 0;
       if (!stock || stock.quantity < deliveredQty) {
+        const prodName = deliveryLine.product ? deliveryLine.product.name : `Product #${deliveryLine.productId}`;
+        const locName = delivery.location ? delivery.location.name : `Location #${delivery.locationId}`;
         return res.status(400).json({
-          error: `Insufficient stock for product ID ${deliveryLine.productId} at location ID ${delivery.locationId}. Available: ${stock ? stock.quantity : 0}, requested: ${deliveredQty}`,
+          error: `Insufficient stock for "${prodName}" at "${locName}". Available: ${currentQty}, requested: ${deliveredQty}`,
         });
       }
 
@@ -163,6 +176,10 @@ const validateDelivery = async (req, res, next) => {
 const cancelDelivery = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const delivery = await prisma.delivery.findUnique({ where: { id: parseInt(id, 10) } });
+    if (!delivery) return res.status(404).json({ error: 'Delivery not found' });
+    if (delivery.status === 'DONE') return res.status(400).json({ error: 'Cannot cancel a completed delivery' });
+
     await prisma.delivery.update({
       where: { id: parseInt(id, 10) },
       data: { status: 'CANCELED' },

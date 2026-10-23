@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../prismaClient');
 
 const getAllTransfers = async (req, res, next) => {
   try {
@@ -81,15 +80,27 @@ const validateTransfer = async (req, res, next) => {
   try {
     const transfer = await prisma.transfer.findUnique({
       where: { id: transferId },
-      include: { lines: true },
+      include: {
+        fromLocation: true,
+        toLocation: true,
+        lines: {
+          include: {
+            product: true,
+          },
+        },
+      },
     });
 
     if (!transfer) {
-      return res.status(404).json({ message: 'Transfer not found' });
+      return res.status(404).json({ error: 'Transfer not found' });
     }
 
     if (transfer.status === 'DONE') {
-      return res.status(400).json({ message: 'Transfer has already been validated.' });
+      return res.status(400).json({ error: 'Transfer has already been validated.' });
+    }
+
+    if (transfer.status === 'CANCELED') {
+      return res.status(400).json({ error: 'Transfer is canceled and cannot be validated.' });
     }
 
     const operations = [];
@@ -104,9 +115,12 @@ const validateTransfer = async (req, res, next) => {
         },
       });
 
+      const currentQty = fromStock ? fromStock.quantity : 0;
       if (!fromStock || fromStock.quantity < line.quantity) {
+        const prodName = line.product ? line.product.name : `Product #${line.productId}`;
+        const fromLocName = transfer.fromLocation ? transfer.fromLocation.name : `Location #${transfer.fromLocationId}`;
         return res.status(400).json({
-          error: `Insufficient stock for product ID ${line.productId} at source location. Available: ${fromStock ? fromStock.quantity : 0}, requested: ${line.quantity}`,
+          error: `Insufficient stock for "${prodName}" at "${fromLocName}". Available: ${currentQty}, requested: ${line.quantity}`,
         });
       }
 
@@ -195,6 +209,10 @@ const validateTransfer = async (req, res, next) => {
 const cancelTransfer = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const transfer = await prisma.transfer.findUnique({ where: { id: parseInt(id, 10) } });
+    if (!transfer) return res.status(404).json({ error: 'Transfer not found' });
+    if (transfer.status === 'DONE') return res.status(400).json({ error: 'Cannot cancel a completed transfer' });
+
     await prisma.transfer.update({
       where: { id: parseInt(id, 10) },
       data: { status: 'CANCELED' },

@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>CoreInventory — SPM Project Gantt Chart & Schedule</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.min.js"></script>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: #0f172a;
+      color: #f1f5f9;
+      min-height: 100vh;
+      padding: 30px;
+    }
+    .header {
+      max-width: 1400px;
+      margin: 0 auto 24px auto;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      border-bottom: 1px solid #334155;
+      padding-bottom: 20px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 4px 10px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      border-radius: 999px;
+      background: rgba(99, 102, 241, 0.2);
+      color: #818cf8;
+      border: 1px solid rgba(99, 102, 241, 0.4);
+      margin-bottom: 8px;
+    }
+    h1 {
+      font-size: 26px;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 0%, #cbd5e1 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+    .subtitle {
+      color: #94a3b8;
+      font-size: 13px;
+      margin-top: 4px;
+    }
+    .meta-cards {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+    }
+    .card {
+      background: #1e293b;
+      border: 1px solid #334155;
+      padding: 10px 16px;
+      border-radius: 10px;
+      font-size: 12px;
+    }
+    .card strong {
+      display: block;
+      color: #38bdf8;
+      font-size: 14px;
+      margin-top: 2px;
+    }
+    .gantt-container {
+      max-width: 1400px;
+      margin: 0 auto;
+      background: #1e293b;
+      border: 1px solid #334155;
+      border-radius: 14px;
+      padding: 24px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.4);
+      overflow-x: auto;
+    }
+    .legend {
+      max-width: 1400px;
+      margin: 20px auto 0 auto;
+      display: flex;
+      gap: 20px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: #94a3b8;
+      justify-content: center;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .dot {
+      width: 12px;
+      height: 12px;
+      border-radius: 3px;
+    }
+    .btn-bar {
+      display: flex;
+      gap: 10px;
+    }
+    .btn {
+      background: #6366f1;
+      color: white;
+      border: none;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 600;
+      cursor: pointer;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: background 0.15s;
+    }
+    .btn:hover { background: #4f46e5; }
+    .mermaid {
+      display: flex;
+      justify-content: center;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="header">
+    <div>
+      <span class="badge">SPM Academic Milestone • 3 Sprints (6 Weeks)</span>
+      <h1>CoreInventory — Master Project Schedule & Gantt Chart</h1>
+      <p class="subtitle">Software Project Management (SPM) • Work Breakdown Structure & Agile Sprint Execution</p>
+    </div>
+    <div class="meta-cards">
+      <div class="card">
+        <span>Team Distribution</span>
+        <strong>2 Members (Front/Back)</strong>
+      </div>
+      <div class="card">
+        <span>Methodology</span>
+        <strong>Agile / Scrum</strong>
+      </div>
+      <div class="card">
+        <span>Total Dataset</span>
+        <strong>5,000 Products</strong>
+      </div>
+      <div class="btn-bar">
+        <button class="btn" onclick="window.print()">🖨️ Print / Save PDF</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="gantt-container">
+    <div class="mermaid">
+gantt
+    title CoreInventory SPM Project Schedule & Work Breakdown (Agile Sprints)
+    dateFormat YYYY-MM-DD
+    axisFormat %b %d
+    todayMarker off
+
+    section Phase 1: Initiation & Architecture
+    Project Scope & WBS Definition           :done, p1, 2026-08-01, 5d
+    Technology Evaluation & Feasibility     :done, p2, 2026-08-04, 4d
+    Relational ERD & Normalization (3NF)     :done, p3, after p2, 5d
+
+    section Sprint 1: Foundation & Seed Engine
+    [M2] PostgreSQL Setup & Prisma Migrations :done, s1_1, 2026-08-12, 6d
+    [M1] Next.js 14 App Router & Design System:done, s1_2, 2026-08-14, 6d
+    [M2] Deterministic 5,000-Item Seed Engine:done, s1_3, after s1_1, 6d
+    [M1] JWT Auth & Role-Based UI (Manager/Staff):done, s1_4, after s1_2, 5d
+    Milestone: Sprint 1 Release & Seed Gate  :milestone, m1, 2026-08-25, 0d
+
+    section Sprint 2: Core Operational Transactions
+    [M2] Receipts & Deliveries Controllers   :done, s2_1, 2026-08-26, 7d
+    [M1] Receipts & Deliveries Client UI     :done, s2_2, 2026-08-28, 7d
+    [M2] Inter-Warehouse Transfers & Adjustments:done, s2_3, after s2_1, 6d
+    [M1] Real-time Stock Modal & Dynamic Validation:done, s2_4, after s2_2, 5d
+    [M2] StockLedger Immutable Audit Trail Engine:done, s2_5, after s2_3, 4d
+    Milestone: Sprint 2 Functional Review    :milestone, m2, 2026-09-09, 0d
+
+    section Sprint 3: Catalog Performance & AI
+    [M1] 5,000-Product Catalog Pagination    :done, s3_1, 2026-09-10, 6d
+    [M1] Instant Multi-Criteria Filter & Search:done, s3_2, after s3_1, 5d
+    [M2] Manager Database Table Explorer API :done, s3_3, 2026-09-11, 5d
+    [M1+M2] AI Inventory Assistant (Groq LLM):done, s3_4, after s3_2, 6d
+    Milestone: Sprint 3 Feature Complete     :milestone, m3, 2026-09-22, 0d
+
+    section Phase 5: SQA, Verification & Demo
+    End-to-End Transaction Integrity Testing :done, q1, 2026-09-23, 4d
+    Next.js Production Build (npm run build) :done, q2, 2026-09-26, 2d
+    SPM Demonstration Video Recording        :active, q3, 2026-09-28, 3d
+    Final LMS Submission (T-1 to T-15)       :milestone, m4, 2026-10-01, 0d
+    </div>
+  </div>
+
+  <div class="legend">
+    <div class="legend-item"><div class="dot" style="background: #818cf8;"></div> <span>[M1] Member 1: Frontend & UX Lead</span></div>
+    <div class="legend-item"><div class="dot" style="background: #38bdf8;"></div> <span>[M2] Member 2: Backend & Database Lead</span></div>
+    <div class="legend-item"><div class="dot" style="background: #34d399;"></div> <span>Sprint Milestones & SQA Verification</span></div>
+  </div>
+
+  <script>
+    mermaid.initialize({
+      startOnLoad: true,
+      theme: 'dark',
+      themeVariables: {
+        darkMode: true,
+        background: '#1e293b',
+        primaryColor: '#6366f1',
+        primaryTextColor: '#fff',
+        primaryBorderColor: '#4f46e5',
+        lineColor: '#94a3b8',
+        secondaryColor: '#0284c7',
+        tertiaryColor: '#10b981',
+        fontFamily: 'Inter, sans-serif',
+        fontSize: '13px'
+      },
+      gantt: {
+        titleTopMargin: 25,
+        barHeight: 22,
+        barGap: 6,
+        topPadding: 50,
+        sidePadding: 40,
+        numberSectionStyles: 5
+      }
+    });
+  </script>
+</body>
+</html>

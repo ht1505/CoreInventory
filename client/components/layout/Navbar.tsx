@@ -14,6 +14,7 @@ const pageTitles: Record<string, string> = {
   '/dashboard/ledger':      'Move History',
   '/dashboard/warehouses':  'Warehouses',
   '/dashboard/suppliers':   'Suppliers',
+  '/dashboard/users':       'User Management',
   '/dashboard/database':    'Database Explorer',
   '/dashboard':             'Dashboard',
 };

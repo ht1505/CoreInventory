@@ -1,5 +1,4 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../prismaClient');
 
 const getAllSuppliers = async (req, res, next) => {
   try {
@@ -49,11 +48,27 @@ const updateSupplier = async (req, res, next) => {
 const deleteSupplier = async (req, res, next) => {
   try {
     const { id } = req.params;
+    const supplierId = parseInt(id, 10);
+
+    const receiptCount = await prisma.receipt.count({
+      where: { supplierId },
+    });
+    if (receiptCount > 0) {
+      return res.status(400).json({
+        error: `Cannot delete supplier because ${receiptCount} receipt(s) are associated with them.`,
+      });
+    }
+
     await prisma.supplier.delete({
-      where: { id: parseInt(id, 10) },
+      where: { id: supplierId },
     });
     res.json({ message: 'Supplier deleted successfully' });
   } catch (error) {
+    if (error.code === 'P2003') {
+      return res.status(400).json({
+        error: 'Cannot delete supplier because receipts or other records are associated with this supplier.',
+      });
+    }
     next(error);
   }
 };

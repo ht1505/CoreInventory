@@ -1,7 +1,6 @@
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const prisma = require('../prismaClient');
 
-const getWarehouses = async (req, res) => {
+const getWarehouses = async (req, res, next) => {
   try {
     const warehouses = await prisma.warehouse.findMany({
       include: { locations: true },
@@ -9,43 +8,55 @@ const getWarehouses = async (req, res) => {
     });
     res.json(warehouses);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (next) next(error);
+    else res.status(500).json({ error: error.message });
   }
 };
 
-const createWarehouse = async (req, res) => {
+const createWarehouse = async (req, res, next) => {
   try {
     const { name, address } = req.body;
     if (!name || !address) return res.status(400).json({ error: 'Name and address required' });
     const warehouse = await prisma.warehouse.create({ data: { name, address }, include: { locations: true } });
     res.status(201).json(warehouse);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (next) next(error);
+    else res.status(500).json({ error: error.message });
   }
 };
 
-const updateWarehouse = async (req, res) => {
+const updateWarehouse = async (req, res, next) => {
   try {
     const { id } = req.params;
     const { name, address } = req.body;
     const warehouse = await prisma.warehouse.update({
-      where: { id: parseInt(id) },
+      where: { id: parseInt(id, 10) },
       data: { name, address },
       include: { locations: true },
     });
     res.json(warehouse);
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (next) next(error);
+    else res.status(500).json({ error: error.message });
   }
 };
 
-const deleteWarehouse = async (req, res) => {
+const deleteWarehouse = async (req, res, next) => {
   try {
     const { id } = req.params;
-    await prisma.warehouse.delete({ where: { id: parseInt(id) } });
+    const warehouseId = parseInt(id, 10);
+    const locCount = await prisma.location.count({ where: { warehouseId } });
+    if (locCount > 0) {
+      return res.status(400).json({ error: `Cannot delete warehouse with ${locCount} active location(s). Please reassign or delete locations first.` });
+    }
+    await prisma.warehouse.delete({ where: { id: warehouseId } });
     res.json({ message: 'Warehouse deleted' });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    if (error.code === 'P2003') {
+      return res.status(400).json({ error: 'Cannot delete warehouse because associated records exist.' });
+    }
+    if (next) next(error);
+    else res.status(500).json({ error: error.message });
   }
 };
 

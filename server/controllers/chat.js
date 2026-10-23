@@ -1,7 +1,5 @@
 const Groq = require('groq-sdk');
-const { PrismaClient } = require('@prisma/client');
-
-const prisma = new PrismaClient();
+const prisma = require('../prismaClient');
 
 const chat = async (req, res) => {
   try {

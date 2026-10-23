@@ -117,15 +117,23 @@ export default function ReceiptsPage() {
                   </select>
                 </div>
               </div>
-              <label style={L.label}>Product Lines</label>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                <label style={{ ...L.label, margin: 0 }}>Product Lines</label>
+              </div>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 32px', gap: '8px', marginBottom: '4px', padding: '0 2px' }}>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Product</span>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Expected</span>
+                <span style={{ fontSize: '11px', fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Received</span>
+                <span></span>
+              </div>
               {form.lines.map((line, i) => (
                 <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 100px 100px 32px', gap: '8px', marginBottom: '8px', alignItems: 'center' }}>
                   <select style={L.select} required value={line.productId} onChange={e => updateLine(i, 'productId', e.target.value)}>
                     <option value="">Select product...</option>
                     {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
                   </select>
-                  <input style={L.input} type="number" placeholder="Expected" value={line.expectedQuantity} onChange={e => updateLine(i, 'expectedQuantity', Number(e.target.value))} />
-                  <input style={L.input} type="number" placeholder="Received" value={line.receivedQuantity} onChange={e => updateLine(i, 'receivedQuantity', Number(e.target.value))} />
+                  <input style={L.input} type="number" min="1" placeholder="Expected" value={line.expectedQuantity} onChange={e => updateLine(i, 'expectedQuantity', Number(e.target.value))} title="Expected Quantity" />
+                  <input style={L.input} type="number" min="0" placeholder="Received" value={line.receivedQuantity} onChange={e => updateLine(i, 'receivedQuantity', Number(e.target.value))} title="Received Quantity" />
                   <button type="button" style={L.btnGhost} onClick={() => setForm(p => ({ ...p, lines: p.lines.filter((_, idx) => idx !== i) }))}><X size={14} color="#6b7280" /></button>
                 </div>
               ))}

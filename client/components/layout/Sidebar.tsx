@@ -7,7 +7,7 @@ import {
   LayoutDashboard, Package, ClipboardList, Truck,
   ArrowLeftRight, SlidersHorizontal, LogOut,
   BookOpen, Warehouse, Users,
-  Database,
+  Database, ShieldCheck,
 } from 'lucide-react';
 
 const navLinks = [
@@ -20,7 +20,8 @@ const navLinks = [
   { href: '/dashboard/ledger',       label: 'Move History', icon: BookOpen,          section: 'ops' },
   { href: '/dashboard/warehouses',   label: 'Warehouses',   icon: Warehouse,         section: 'settings' },
   { href: '/dashboard/suppliers',    label: 'Suppliers',    icon: Users,             section: 'settings' },
-  { href: '/dashboard/database', label: 'Database', icon: Database, section: 'settings' },
+  { href: '/dashboard/users',        label: 'User Rights',  icon: ShieldCheck,       section: 'settings', managerOnly: true },
+  { href: '/dashboard/database',     label: 'Database',     icon: Database,          section: 'settings', managerOnly: true },
 ];
 
 const Sidebar = () => {
@@ -38,7 +39,11 @@ const Sidebar = () => {
   };
 
   const renderSection = (label: string, section: string) => {
-    const links = navLinks.filter(l => l.section === section);
+    const links = navLinks.filter(l => {
+      if (l.section !== section) return false;
+      if (l.managerOnly && user?.role !== 'MANAGER') return false;
+      return true;
+    });
     return (
       <>
         <p style={{

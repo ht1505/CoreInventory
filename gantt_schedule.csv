@@ -1,0 +1,24 @@
+Task ID,Task Name,Start Date,End Date,Duration (Days),Progress,Assigned To,Phase
+1,Project Scope & WBS Definition,2026-08-01,2026-08-05,5,100%,Member 1 & 2,Phase 1: Initiation
+2,Technology Evaluation & Feasibility,2026-08-04,2026-08-07,4,100%,Member 1 & 2,Phase 1: Initiation
+3,Relational ERD & Normalization (3NF),2026-08-07,2026-08-11,5,100%,Member 2,Phase 1: Initiation
+4,PostgreSQL Setup & Prisma Migrations,2026-08-12,2026-08-17,6,100%,Member 2,Sprint 1
+5,Next.js 14 App Router & Design System,2026-08-14,2026-08-19,6,100%,Member 1,Sprint 1
+6,Deterministic 5000-Item Seed Engine,2026-08-17,2026-08-22,6,100%,Member 2,Sprint 1
+7,JWT Auth & Role-Based UI (Manager/Staff),2026-08-19,2026-08-23,5,100%,Member 1,Sprint 1
+8,Milestone: Sprint 1 Release & Seed Gate,2026-08-25,2026-08-25,1,100%,Member 1 & 2,Sprint 1
+9,Receipts & Deliveries Controllers,2026-08-26,2026-09-01,7,100%,Member 2,Sprint 2
+10,Receipts & Deliveries Client UI,2026-08-28,2026-09-03,7,100%,Member 1,Sprint 2
+11,Inter-Warehouse Transfers & Adjustments,2026-09-01,2026-09-06,6,100%,Member 2,Sprint 2
+12,Real-time Stock Modal & Dynamic Validation,2026-09-03,2026-09-07,5,100%,Member 1,Sprint 2
+13,StockLedger Immutable Audit Trail Engine,2026-09-06,2026-09-09,4,100%,Member 2,Sprint 2
+14,Milestone: Sprint 2 Functional Review,2026-09-09,2026-09-09,1,100%,Member 1 & 2,Sprint 2
+15,5000-Product Catalog Pagination,2026-09-10,2026-09-15,6,100%,Member 1,Sprint 3
+16,Instant Multi-Criteria Filter & Search,2026-09-15,2026-09-19,5,100%,Member 1,Sprint 3
+17,Manager Database Table Explorer API,2026-09-11,2026-09-15,5,100%,Member 2,Sprint 3
+18,AI Inventory Assistant (Groq LLM),2026-09-17,2026-09-22,6,100%,Member 1 & 2,Sprint 3
+19,Milestone: Sprint 3 Feature Complete,2026-09-22,2026-09-22,1,100%,Member 1 & 2,Sprint 3
+20,End-to-End Transaction Integrity Testing,2026-09-23,2026-09-26,4,100%,Member 2,Phase 5: SQA
+21,Next.js Production Build (npm run build),2026-09-26,2026-09-27,2,100%,Member 1,Phase 5: SQA
+22,SPM Demonstration Video Recording,2026-09-28,2026-09-30,3,100%,Member 1 & 2,Phase 5: SQA
+23,Final LMS Submission (T-1 to T-15),2026-10-01,2026-10-01,1,100%,Member 1 & 2,Phase 5: SQA
